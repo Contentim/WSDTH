@@ -68,37 +68,19 @@ class TreeDataProvider {
         this.categoriesMap = new Map();
         this.isLoading = false;
         this.allDocumentItems = [];
-        this.areCategoriesExpanded = false; // Флаг состояния категорий
-        this.categoriesData = new Map(); // Храним данные категорий для пересоздания
+        this.categoriesData = new Map(); // Храним исходные данные категорий
+        this.currentCollapseState = vscode.TreeItemCollapsibleState.Collapsed; // Текущее состояние по умолчанию
     }
 
-    // Развернуть все категории
-    expandAllCategories() {
-        this.areCategoriesExpanded = true;
-        this.rebuildTreeData();
-        vscode.window.showInformationMessage('Все категории развернуты');
-    }
+    // Перестроить дерево с текущим состоянием свернутости
+    rebuildTreeView() {
+        if (this.categoriesData.size === 0) return;
 
-    // Свернуть все категории
-    collapseAllCategories() {
-        this.areCategoriesExpanded = false;
-        this.rebuildTreeData();
-        vscode.window.showInformationMessage('Все категории свернуты');
-    }
-
-    // Перестроить данные дерева с учетом состояния свернутости
-    rebuildTreeData() {
-        if (!this.categoriesData.size) return;
-
-        const collapsibleState = this.areCategoriesExpanded 
-            ? vscode.TreeItemCollapsibleState.Expanded
-            : vscode.TreeItemCollapsibleState.Collapsed;
-
-        // Создаем элементы дерева с правильным состоянием
+        // Создаем НОВЫЕ элементы категорий с текущим состоянием свернутости
         const documentationChildren = Array.from(this.categoriesData.entries()).map(([categoryTitle, docs]) => 
             new TreeItem(
                 categoryTitle,
-                collapsibleState, // Используем текущее состояние
+                this.currentCollapseState, // ← состояние берётся отсюда
                 'folder',
                 docs.map(doc => 
                     new TreeItem(
@@ -109,13 +91,42 @@ class TreeDataProvider {
                         doc.id,
                         doc
                     )
-                )
+                ),
+                categoryTitle // ← УНИКАЛЬНЫЙ ID ДЛЯ КАТЕГОРИИ (важно!)
             )
         );
 
-        // Обновляем дерево
-        this.data[0].children = documentationChildren;
-        this._onDidChangeTreeData.fire();
+        // Добавляем категорию "Без категории"
+        const uncategorizedDocs = Array.from(this.categoriesData.entries())
+            .flatMap(([categoryTitle, docs]) => categoryTitle === 'Без категории' ? docs : [])
+            .concat(this.supabaseData.filter(doc => !doc.category && !this.categoriesData.has('Без категории')));
+
+        if (uncategorizedDocs.length > 0) {
+            documentationChildren.push(
+                new TreeItem(
+                    'Без категории',
+                    this.currentCollapseState,
+                    'folder',
+                    uncategorizedDocs.map(doc => 
+                        new TreeItem(
+                            doc.title || 'Без названия',
+                            vscode.TreeItemCollapsibleState.None,
+                            doc.type || 'document',
+                            [],
+                            doc.id,
+                            doc
+                        )
+                    ),
+                    'uncategorized' // ← уникальный ID для этой категории
+                )
+            );
+        }
+
+        // Обновляем КОРНЕВОЙ массив — создаём НОВЫЙ массив
+        this.data = [...documentationChildren]; // ← spread для гарантии нового массива
+
+        // Явно говорим VS Code: перерисуй ВСЁ дерево
+        this._onDidChangeTreeData.fire(undefined);
     }
 
     // Загрузка данных из Supabase с join таблиц
@@ -187,18 +198,18 @@ class TreeDataProvider {
 
                     // Сохраняем данные категорий для пересоздания
                     this.categoriesData = this.groupDocumentsByCategory(enrichedDocuments);
-
-                    // Устанавливаем начальное состояние - свернуто
-                    this.areCategoriesExpanded = false;
-                    this.rebuildTreeData();
-
+                    
                     // Сохраняем данные
                     this.supabaseData = enrichedDocuments;
+
+                    // Устанавливаем начальное состояние - СВЕРНУТО
+                    this.currentCollapseState = vscode.TreeItemCollapsibleState.Collapsed;
+                    this.rebuildTreeView();
 
                     progress.report({ increment: 100 });
 
                     vscode.window.showInformationMessage(
-                        `✅ Загружено ${documents.length} документов из ${this.categoriesData.size} категорий`
+                        `✅ Загружено ${documents.length} документов из ${this.categoriesData.size} категорий (все категории свернуты)`
                     );
 
                     resolve(enrichedDocuments);
@@ -227,18 +238,22 @@ class TreeDataProvider {
     // Начальные данные с индикатором загрузки
     getInitialData() {
         return [
-			new TreeItem('WebSoft Documentation', vscode.TreeItemCollapsibleState.Expanded, 'api', [
-                new TreeItem('Загрузка документации...', vscode.TreeItemCollapsibleState.None, 'loading')
-            ]),
-            // new TreeItem('Local Project', vscode.TreeItemCollapsibleState.Expanded, 'folder', [
-            //     // new TreeItem('src', vscode.TreeItemCollapsibleState.Collapsed, 'folder', [
-            //     //     // new TreeItem('App.tsx', vscode.TreeItemCollapsibleState.None, 'typescript'),
-            //     //     // new TreeItem('index.tsx', vscode.TreeItemCollapsibleState.None, 'typescript')
-            //     // ]),
-            //     // new TreeItem('package.json', vscode.TreeItemCollapsibleState.None, 'json')
-            // ]),
-            
+            new TreeItem('Загрузка документации...', vscode.TreeItemCollapsibleState.None, 'loading')
         ];
+        // return [
+        //     new TreeItem('Загрузка документации...', vscode.TreeItemCollapsibleState.None, 'loading'),
+		// 	// new TreeItem('WebSoft Documentation', vscode.TreeItemCollapsibleState.Expanded, 'api', [
+        //     //     new TreeItem('Загрузка документации...', vscode.TreeItemCollapsibleState.None, 'loading')
+        //     // ]),
+        //     // new TreeItem('Lorem Ipsum Dolor', vscode.TreeItemCollapsibleState.Expanded, 'folder', [
+        //     //     // new TreeItem('src', vscode.TreeItemCollapsibleState.Collapsed, 'folder', [
+        //     //     //     // new TreeItem('App.tsx', vscode.TreeItemCollapsibleState.None, 'typescript'),
+        //     //     //     // new TreeItem('index.tsx', vscode.TreeItemCollapsibleState.None, 'typescript')
+        //     //     // ]),
+        //     //     new TreeItem('package.json', vscode.TreeItemCollapsibleState.None, 'json')
+        //     // ]),
+            
+        // ];
     }
 
     // Получить все элементы документации для QuickPick
@@ -309,6 +324,7 @@ class TreeDataProvider {
     }
 
     getTreeItem(element) {
+        console.log(`[getTreeItem] ${element.label} - state:`, element.collapsibleState);
         return element;
     }
 
@@ -776,14 +792,6 @@ function activate(context) {
             }
         }),
 
-        vscode.commands.registerCommand('treeview-activitybar-demo.expandAll', () => {
-            treeDataProvider.expandAllCategories();
-        }),
-
-        vscode.commands.registerCommand('treeview-activitybar-demo.collapseAll', () => {
-            treeDataProvider.collapseAllCategories();
-        }),
-
         vscode.commands.registerCommand('treeview-activitybar-demo.searchDocumentation', showDocumentationQuickPick),
         vscode.commands.registerCommand('treeview-activitybar-demo.filterDocumentation', showFilteredDocumentationQuickPick)
     ];
@@ -800,14 +808,6 @@ function activate(context) {
     quickPickStatusBar.command = 'treeview-activitybar-demo.searchDocumentation';
     quickPickStatusBar.show();
     context.subscriptions.push(quickPickStatusBar);
-
-    // Добавляем кнопки в статусную строку для управления свертыванием
-    const expandCollapseButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 98);
-    expandCollapseButton.text = '$(expand-all)';
-    expandCollapseButton.tooltip = 'Развернуть/свернуть все категории';
-    expandCollapseButton.command = 'treeview-activitybar-demo.expandAll'; // Можно сделать переключатель
-    expandCollapseButton.show();
-    context.subscriptions.push(expandCollapseButton);
 }
 
 function deactivate() {}

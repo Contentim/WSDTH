@@ -13,9 +13,7 @@
     "onStartupFinished",
     "onView:treeview-activitybar-demo.treeView",
     "onCommand:treeview-activitybar-demo.searchDocumentation",
-    "onCommand:treeview-activitybar-demo.filterDocumentation",
-    "onCommand:treeview-activitybar-demo.expandAll",
-    "onCommand:treeview-activitybar-demo.collapseAll"
+    "onCommand:treeview-activitybar-demo.filterDocumentation"
   ],
   "main": "./extension.js",
   "contributes": {
@@ -32,7 +30,7 @@
       "treeview-activitybar-demo": [
         {
           "id": "treeview-activitybar-demo.treeView",
-          "name": "Project Structure",
+          "name": "WebSoft Documentation Developer",
           "icon": "$(list-tree)"
         },
         {
@@ -87,18 +85,6 @@
         "title": "Filter Todos",
         "icon": "$(filter)",
         "category": "TreeView Demo"
-      },
-      {
-        "command": "treeview-activitybar-demo.expandAll",
-        "title": "Expand All Categories",
-        "icon": "$(expand-all)",
-        "category": "TreeView Demo"
-      },
-      {
-        "command": "treeview-activitybar-demo.collapseAll",
-        "title": "Collapse All Categories",
-        "icon": "$(collapse-all)",
-        "category": "TreeView Demo"
       }
     ],
     "menus": {
@@ -110,16 +96,6 @@
         },
         {
           "command": "treeview-activitybar-demo.searchDocumentation",
-          "when": "view == treeview-activitybar-demo.treeView",
-          "group": "navigation"
-        },
-        {
-          "command": "treeview-activitybar-demo.expandAll",
-          "when": "view == treeview-activitybar-demo.treeView",
-          "group": "navigation"
-        },
-        {
-          "command": "treeview-activitybar-demo.collapseAll",
           "when": "view == treeview-activitybar-demo.treeView",
           "group": "navigation"
         }
@@ -156,14 +132,6 @@
         },
         {
           "command": "treeview-activitybar-demo.closeAllDocumentation",
-          "when": "true"
-        },
-        {
-          "command": "treeview-activitybar-demo.expandAll",
-          "when": "true"
-        },
-        {
-          "command": "treeview-activitybar-demo.collapseAll",
           "when": "true"
         }
       ]
