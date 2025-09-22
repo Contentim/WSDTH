@@ -30,7 +30,7 @@
       "treeview-activitybar-demo": [
         {
           "id": "treeview-activitybar-demo.treeView",
-          "name": "WebSoft Documentation Developer",
+          "name": "Websoft DevTools Helper",
           "icon": "$(list-tree)"
         },
         {
