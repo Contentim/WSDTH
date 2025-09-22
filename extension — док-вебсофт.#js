@@ -1,0 +1,362 @@
+const vscode = require('vscode');
+const axios = require('axios');
+
+// Класс для представления элемента дерева
+class TreeItem extends vscode.TreeItem {
+    constructor(label, collapsibleState, type = 'file', children = [], id = null) {
+        super(label, collapsibleState);
+        this.children = children;
+        this.type = type;
+        this.contextValue = type;
+        this.id = id;
+        
+        // Устанавливаем иконки в зависимости от типа
+        switch (type) {
+            case 'folder':
+                this.iconPath = new vscode.ThemeIcon('folder');
+                break;
+            case 'array':
+                this.iconPath = new vscode.ThemeIcon('symbol-array');
+                break;
+            case 'string':
+                this.iconPath = new vscode.ThemeIcon('symbol-string');
+                break;
+            case 'api':
+                this.iconPath = new vscode.ThemeIcon('cloud');
+                break;
+            case 'typescript':
+                this.iconPath = new vscode.ThemeIcon('file-code');
+                break;
+            case 'json':
+                this.iconPath = new vscode.ThemeIcon('json');
+                break;
+            case 'css':
+                this.iconPath = new vscode.ThemeIcon('file-media');
+                break;
+            case 'html':
+                this.iconPath = new vscode.ThemeIcon('file-text');
+                break;
+            default:
+                this.iconPath = new vscode.ThemeIcon('file');
+        }
+
+        // Для файлов добавляем команду открытия
+        if (type !== 'folder' && children.length === 0) {
+            this.command = {
+                command: 'treeview-activitybar-demo.openFile',
+                title: 'Open File',
+                arguments: [this]
+            };
+        }
+    }
+}
+
+// Провайдер данных для основного TreeView
+class TreeDataProvider {
+    constructor() {
+        this._onDidChangeTreeData = new vscode.EventEmitter();
+        this.onDidChangeTreeData = this._onDidChangeTreeData.event;
+        this.data = this.getDemoData();
+        this.apiData = [];
+    }
+
+    // Генерация демо-данных
+    getDemoData() {
+        return [
+            new TreeItem('Local Project', vscode.TreeItemCollapsibleState.Expanded, 'folder', [
+                new TreeItem('src', vscode.TreeItemCollapsibleState.Collapsed, 'folder', [
+                    new TreeItem('App.tsx', vscode.TreeItemCollapsibleState.None, 'typescript'),
+                    new TreeItem('index.tsx', vscode.TreeItemCollapsibleState.None, 'typescript')
+                ]),
+                new TreeItem('package.json', vscode.TreeItemCollapsibleState.None, 'json')
+            ]),
+            new TreeItem('API Data', vscode.TreeItemCollapsibleState.Collapsed, 'api', [])
+        ];
+    }
+
+    // Загрузка данных из API
+    async loadFromAPI() {
+        // const apiBaseUrl = 'http://localhost:5000/notes';
+        const apiBaseUrl = 'https://jsonplaceholder.typicode.com/todos/';
+        const noteIds = [4, 6, 7, 8];
+        
+        vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: 'Loading data from API...',
+            cancellable: false
+        }, async (progress) => {
+            progress.report({ increment: 0 });
+
+            try {
+                const requests = noteIds.map(id => 
+                    axios.get(`${apiBaseUrl}/${id}`)
+                        .then(response => ({
+                            id,
+                            name: response.data.name,
+                            success: true
+                        }))
+                        .catch(error => ({
+                            id,
+                            name: `Error loading ID ${id}`,
+                            success: false,
+                            error: error.message
+                        }))
+                );
+
+				
+
+                const results = await Promise.all(requests);
+                
+                // Разделяем данные по категориям
+                const arrayItems = results.filter(item => [4, 6].includes(item.id));
+                const stringItems = results.filter(item => [7, 8].includes(item.id));
+
+                // Создаем элементы дерева для API данных
+                const apiChildren = [
+                    new TreeItem('Работа с массивами', vscode.TreeItemCollapsibleState.Expanded, 'folder', 
+                        arrayItems.map(item => 
+                            new TreeItem(
+                                item.success ? item.title : `ID ${item.id}: ${item.title}`,
+                                vscode.TreeItemCollapsibleState.None,
+                                'array',
+                                [],
+                                item.id
+                            )
+                        )
+                    ),
+                    new TreeItem('Работа со строками', vscode.TreeItemCollapsibleState.Expanded, 'folder', 
+                        stringItems.map(item => 
+                            new TreeItem(
+                                item.success ? item.title : `ID ${item.id}: ${item.title}`,
+                                vscode.TreeItemCollapsibleState.None,
+                                'string',
+                                [],
+                                item.id
+                            )
+                        )
+                    )
+                ];
+
+				console.log(apiChildren)
+
+                // Сохраняем данные API
+                this.apiData = results;
+
+                // Обновляем дерево
+                this.data[1].children = apiChildren;
+                this.data[1].children = new TreeItem('package.json', vscode.TreeItemCollapsibleState.None, 'json');
+                this._onDidChangeTreeData.fire();
+
+                // Показываем статистику
+                const successCount = results.filter(r => r.success).length;
+                const errorCount = results.filter(r => !r.success).length;
+                
+                vscode.window.showInformationMessage(
+                    `API data loaded! Success: ${successCount}, Errors: ${errorCount}`
+                );
+
+                progress.report({ increment: 100 });
+
+            } catch (error) {
+                vscode.window.showErrorMessage(`Failed to load API data: ${error.message}`);
+                progress.report({ increment: 100 });
+            }
+        });
+    }
+
+    getTreeItem(element) {
+        return element;
+    }
+
+    getChildren(element) {
+        if (!element) {
+            return this.data;
+        }
+        return element.children;
+    }
+
+    refresh() {
+        this._onDidChangeTreeData.fire();
+        vscode.window.showInformationMessage('🌳 Tree refreshed!');
+    }
+
+    addItem(parent) {
+        const newItem = new TreeItem(
+            `New_Item_${Math.random().toString(36).substr(2, 5)}`, 
+            vscode.TreeItemCollapsibleState.None,
+            'file'
+        );
+        
+        if (parent && parent.type === 'folder') {
+            parent.children.push(newItem);
+        } else {
+            this.data.push(newItem);
+        }
+        
+        this._onDidChangeTreeData.fire();
+    }
+
+    editItem(item) {
+        vscode.window.showInputBox({
+            prompt: 'Enter new name:',
+            value: item.label
+        }).then(newName => {
+            if (newName) {
+                item.label = newName;
+                this._onDidChangeTreeData.fire();
+            }
+        });
+    }
+
+    deleteItem(item) {
+        const deleteFromArray = (array, target) => {
+            const index = array.indexOf(target);
+            if (index > -1) {
+                array.splice(index, 1);
+                return true;
+            }
+            
+            for (const element of array) {
+                if (element.children && deleteFromArray(element.children, target)) {
+                    return true;
+                }
+            }
+            
+            return false;
+        };
+
+        if (deleteFromArray(this.data, item)) {
+            this._onDidChangeTreeData.fire();
+            vscode.window.showInformationMessage(`Deleted: ${item.label}`);
+        }
+    }
+
+    // Получение статистики для информационной панели
+    getStats() {
+        const totalApiItems = this.apiData.length;
+        const successApiItems = this.apiData.filter(item => item.success).length;
+        const errorApiItems = this.apiData.filter(item => !item.success).length;
+
+        return {
+            totalApiItems,
+            successApiItems,
+            errorApiItems
+        };
+    }
+}
+
+// Провайдер для информационной панели
+class InfoDataProvider {
+    constructor(treeDataProvider) {
+        this.treeDataProvider = treeDataProvider;
+    }
+
+    getTreeItem(element) {
+        return element;
+    }
+
+    getChildren() {
+        const stats = this.treeDataProvider.getStats();
+        
+        return [
+            new vscode.TreeItem('📊 API Statistics', vscode.TreeItemCollapsibleState.None),
+            new vscode.TreeItem(`✅ Successful requests: ${stats.successApiItems}`, vscode.TreeItemCollapsibleState.None),
+            new vscode.TreeItem(`❌ Failed requests: ${stats.errorApiItems}`, vscode.TreeItemCollapsibleState.None),
+            new vscode.TreeItem(`📋 Total API items: ${stats.totalApiItems}`, vscode.TreeItemCollapsibleState.None),
+            new vscode.TreeItem('', vscode.TreeItemCollapsibleState.None), // Разделитель
+            new vscode.TreeItem('🎯 Available IDs: 4, 6, 7, 8', vscode.TreeItemCollapsibleState.None),
+            new vscode.TreeItem('📁 Arrays: IDs 4, 6', vscode.TreeItemCollapsibleState.None),
+            new vscode.TreeItem('📝 Strings: IDs 7, 8', vscode.TreeItemCollapsibleState.None),
+            new vscode.TreeItem('', vscode.TreeItemCollapsibleState.None),
+            new vscode.TreeItem('🌐 API: http://localhost:5000/notes/:id', vscode.TreeItemCollapsibleState.None)
+        ];
+    }
+}
+
+function activate(context) {
+    console.log('TreeView Activity Bar extension activated');
+
+    // Создаем провайдеры данных
+    const treeDataProvider = new TreeDataProvider();
+    const infoDataProvider = new InfoDataProvider(treeDataProvider);
+
+    // Регистрируем TreeView в activity bar
+    const treeView = vscode.window.createTreeView('treeview-activitybar-demo.treeView', {
+        treeDataProvider: treeDataProvider,
+        showCollapseAll: true
+    });
+
+    const infoView = vscode.window.createTreeView('treeview-activitybar-demo.infoView', {
+        treeDataProvider: infoDataProvider
+    });
+
+    // Обработчики событий
+    treeView.onDidChangeSelection(event => {
+        if (event.selection.length > 0) {
+            const selectedItem = event.selection[0];
+            if (selectedItem.id) {
+                vscode.window.showInformationMessage(`Selected: ${selectedItem.label} (ID: ${selectedItem.id})`);
+            } else {
+                vscode.window.showInformationMessage(`Selected: ${selectedItem.label}`);
+            }
+        }
+    });
+
+    // Регистрируем команды
+    const commands = [
+        vscode.commands.registerCommand('treeview-activitybar-demo.refresh', () => {
+            treeDataProvider.refresh();
+            infoDataProvider._onDidChangeTreeData?.fire(); // Обновляем инфо панель
+        }),
+
+        vscode.commands.registerCommand('treeview-activitybar-demo.addItem', (node) => {
+            treeDataProvider.addItem(node);
+        }),
+
+        vscode.commands.registerCommand('treeview-activitybar-demo.editItem', (node) => {
+            treeDataProvider.editItem(node);
+        }),
+
+        vscode.commands.registerCommand('treeview-activitybar-demo.deleteItem', (node) => {
+            treeDataProvider.deleteItem(node);
+        }),
+
+        vscode.commands.registerCommand('treeview-activitybar-demo.openFile', (node) => {
+            if (node.id) {
+                vscode.window.showInformationMessage(`Opening API item: ${node.label} (ID: ${node.id})`);
+            } else {
+                vscode.window.showInformationMessage(`Opening: ${node.label}`);
+            }
+        }),
+
+        vscode.commands.registerCommand('treeview-activitybar-demo.showInfo', () => {
+            vscode.window.showInformationMessage('🌳 TreeView Demo Extension\n📌 Located in Activity Bar\n🌐 Supports REST API');
+        }),
+
+        vscode.commands.registerCommand('treeview-activitybar-demo.loadFromAPI', () => {
+            treeDataProvider.loadFromAPI().then(() => {
+                // После загрузки данных обновляем информационную панель
+                if (infoDataProvider._onDidChangeTreeData) {
+                    infoDataProvider._onDidChangeTreeData.fire();
+                }
+            });
+        })
+    ];
+
+    // Добавляем все в контекст
+    commands.forEach(command => context.subscriptions.push(command));
+    context.subscriptions.push(treeView);
+    context.subscriptions.push(infoView);
+
+    // Автоматически загружаем данные при активации
+    setTimeout(() => {
+        vscode.window.showInformationMessage('Click "Load from API" to fetch data from http://localhost:5000');
+    }, 2000);
+}
+
+function deactivate() {}
+
+module.exports = {
+    activate,
+    deactivate
+};

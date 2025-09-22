@@ -1,0 +1,178 @@
+{
+  "name": "treeview-activitybar-demo",
+  "displayName": "TreeView Activity Bar Demo",
+  "description": "A TreeView extension that appears in the activity bar",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.60.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onView:treeview-activitybar-demo.treeView",
+    "onCommand:treeview-activitybar-demo.searchDocumentation",
+    "onCommand:treeview-activitybar-demo.filterDocumentation",
+    "onCommand:treeview-activitybar-demo.expandAll",
+    "onCommand:treeview-activitybar-demo.collapseAll"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "treeview-activitybar-demo",
+          "title": "Demo Workspace",
+          "icon": "$(list-tree)"
+        }
+      ]
+    },
+    "views": {
+      "treeview-activitybar-demo": [
+        {
+          "id": "treeview-activitybar-demo.treeView",
+          "name": "Project Structure",
+          "icon": "$(list-tree)"
+        },
+        {
+          "id": "treeview-activitybar-demo.infoView",
+          "name": "Information",
+          "icon": "$(info)"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "treeview-activitybar-demo.refresh",
+        "title": "Refresh Tree",
+        "icon": "$(refresh)",
+        "category": "TreeView Demo"
+      },
+      {
+        "command": "treeview-activitybar-demo.editItem",
+        "title": "Edit Item",
+        "icon": "$(edit)",
+        "category": "TreeView Demo"
+      },
+      {
+        "command": "treeview-activitybar-demo.openFile",
+        "title": "Open File",
+        "category": "TreeView Demo"
+      },
+      {
+        "command": "treeview-activitybar-demo.showInfo",
+        "title": "Show Info",
+        "category": "TreeView Demo"
+      },
+      {
+        "command": "treeview-activitybar-demo.showDocumentation",
+        "title": "Show Documentation",
+        "icon": "$(book)",
+        "category": "TreeView Demo"
+      },
+      {
+        "command": "treeview-activitybar-demo.closeAllDocumentation",
+        "title": "Close All Documentation Panels",
+        "category": "TreeView Demo"
+      },
+      {
+        "command": "treeview-activitybar-demo.searchDocumentation",
+        "title": "Search Todos",
+        "icon": "$(search)",
+        "category": "TreeView Demo"
+      },
+      {
+        "command": "treeview-activitybar-demo.filterDocumentation",
+        "title": "Filter Todos",
+        "icon": "$(filter)",
+        "category": "TreeView Demo"
+      },
+      {
+        "command": "treeview-activitybar-demo.expandAll",
+        "title": "Expand All Categories",
+        "icon": "$(expand-all)",
+        "category": "TreeView Demo"
+      },
+      {
+        "command": "treeview-activitybar-demo.collapseAll",
+        "title": "Collapse All Categories",
+        "icon": "$(collapse-all)",
+        "category": "TreeView Demo"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "treeview-activitybar-demo.refresh",
+          "when": "view == treeview-activitybar-demo.treeView",
+          "group": "navigation"
+        },
+        {
+          "command": "treeview-activitybar-demo.searchDocumentation",
+          "when": "view == treeview-activitybar-demo.treeView",
+          "group": "navigation"
+        },
+        {
+          "command": "treeview-activitybar-demo.expandAll",
+          "when": "view == treeview-activitybar-demo.treeView",
+          "group": "navigation"
+        },
+        {
+          "command": "treeview-activitybar-demo.collapseAll",
+          "when": "view == treeview-activitybar-demo.treeView",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "treeview-activitybar-demo.editItem",
+          "when": "view == treeview-activitybar-demo.treeView",
+          "group": "inline"
+        },
+        {
+          "command": "treeview-activitybar-demo.openFile",
+          "when": "view == treeview-activitybar-demo.treeView && viewItem == file",
+          "group": "inline"
+        },
+        {
+          "command": "treeview-activitybar-demo.showDocumentation",
+          "when": "view == treeview-activitybar-demo.treeView && (viewItem == completed || viewItem == pending)",
+          "group": "inline"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "treeview-activitybar-demo.searchDocumentation",
+          "when": "true"
+        },
+        {
+          "command": "treeview-activitybar-demo.filterDocumentation",
+          "when": "true"
+        },
+        {
+          "command": "treeview-activitybar-demo.showDocumentation",
+          "when": "true"
+        },
+        {
+          "command": "treeview-activitybar-demo.closeAllDocumentation",
+          "when": "true"
+        },
+        {
+          "command": "treeview-activitybar-demo.expandAll",
+          "when": "true"
+        },
+        {
+          "command": "treeview-activitybar-demo.collapseAll",
+          "when": "true"
+        }
+      ]
+    }
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.57.4"
+  },
+  "devDependencies": {
+    "@wshcmx/types": "^12.0.0"
+  }
+}

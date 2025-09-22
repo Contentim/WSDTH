@@ -1,0 +1,241 @@
+const vscode = require('vscode');
+
+// Класс для представления элемента дерева
+class TreeItem extends vscode.TreeItem {
+    constructor(label, collapsibleState, type = 'file', children = []) {
+        super(label, collapsibleState);
+        this.children = children;
+        this.type = type;
+        this.contextValue = type;
+        
+        // Устанавливаем иконки в зависимости от типа
+        switch (type) {
+            case 'folder':
+                this.iconPath = new vscode.ThemeIcon('folder');
+                break;
+            case 'typescript':
+                this.iconPath = new vscode.ThemeIcon('file-code');
+                break;
+            case 'json':
+                this.iconPath = new vscode.ThemeIcon('json');
+                break;
+            case 'css':
+                this.iconPath = new vscode.ThemeIcon('file-media');
+                break;
+            case 'html':
+                this.iconPath = new vscode.ThemeIcon('file-text');
+                break;
+            default:
+                this.iconPath = new vscode.ThemeIcon('file');
+        }
+
+        // Для файлов добавляем команду открытия
+        if (type !== 'folder' && children.length === 0) {
+            this.command = {
+                command: 'treeview-activitybar-demo.openFile',
+                title: 'Open File',
+                arguments: [this]
+            };
+        }
+    }
+}
+
+// Провайдер данных для основного TreeView
+class TreeDataProvider {
+    constructor() {
+        this._onDidChangeTreeData = new vscode.EventEmitter();
+        this.onDidChangeTreeData = this._onDidChangeTreeData.event;
+        this.data = this.getData();
+    }
+
+    // Генерация демо-данных
+    getData() {
+        return [
+            new TreeItem('src', vscode.TreeItemCollapsibleState.Expanded, 'folder', [
+                new TreeItem('components', vscode.TreeItemCollapsibleState.Collapsed, 'folder', [
+                    new TreeItem('Button.tsx', vscode.TreeItemCollapsibleState.None, 'typescript'),
+                    new TreeItem('Header.tsx', vscode.TreeItemCollapsibleState.None, 'typescript')
+                ]),
+                new TreeItem('utils', vscode.TreeItemCollapsibleState.Collapsed, 'folder', [
+                    new TreeItem('helpers.ts', vscode.TreeItemCollapsibleState.None, 'typescript'),
+                    new TreeItem('constants.ts', vscode.TreeItemCollapsibleState.None, 'typescript')
+                ]),
+                new TreeItem('App.tsx', vscode.TreeItemCollapsibleState.None, 'typescript'),
+                new TreeItem('index.tsx', vscode.TreeItemCollapsibleState.None, 'typescript')
+            ]),
+            new TreeItem('public', vscode.TreeItemCollapsibleState.Collapsed, 'folder', [
+                new TreeItem('index.html', vscode.TreeItemCollapsibleState.None, 'html'),
+                new TreeItem('favicon.ico', vscode.TreeItemCollapsibleState.None, 'file')
+            ]),
+            new TreeItem('styles', vscode.TreeItemCollapsibleState.Collapsed, 'folder', [
+                new TreeItem('main.css', vscode.TreeItemCollapsibleState.None, 'css'),
+                new TreeItem('variables.css', vscode.TreeItemCollapsibleState.None, 'css')
+            ]),
+            new TreeItem('config', vscode.TreeItemCollapsibleState.Collapsed, 'folder', [
+                new TreeItem('package.json', vscode.TreeItemCollapsibleState.None, 'json'),
+                new TreeItem('tsconfig.json', vscode.TreeItemCollapsibleState.None, 'json'),
+                new TreeItem('.gitignore', vscode.TreeItemCollapsibleState.None, 'file')
+            ]),
+            new TreeItem('README.md', vscode.TreeItemCollapsibleState.None, 'file')
+        ];
+    }
+
+    getTreeItem(element) {
+        return element;
+    }
+
+    getChildren(element) {
+        if (!element) {
+            return this.data;
+        }
+        return element.children;
+    }
+
+    refresh() {
+        this._onDidChangeTreeData.fire();
+        vscode.window.showInformationMessage('🌳 Tree refreshed!');
+    }
+
+    addItem(parent) {
+        const newItem = new TreeItem(
+            `New_Item_${Math.random().toString(36).substr(2, 5)}`, 
+            vscode.TreeItemCollapsibleState.None,
+            'file'
+        );
+        
+        if (parent && parent.type === 'folder') {
+            parent.children.push(newItem);
+        } else {
+            this.data.push(newItem);
+        }
+        
+        this._onDidChangeTreeData.fire();
+    }
+
+    editItem(item) {
+        vscode.window.showInputBox({
+            prompt: 'Enter new name:',
+            value: item.label
+        }).then(newName => {
+            if (newName) {
+                item.label = newName;
+                this._onDidChangeTreeData.fire();
+            }
+        });
+    }
+
+    deleteItem(item) {
+        const deleteFromArray = (array, target) => {
+            const index = array.indexOf(target);
+            if (index > -1) {
+                array.splice(index, 1);
+                return true;
+            }
+            
+            for (const element of array) {
+                if (element.children && deleteFromArray(element.children, target)) {
+                    return true;
+                }
+            }
+            
+            return false;
+        };
+
+        if (deleteFromArray(this.data, item)) {
+            this._onDidChangeTreeData.fire();
+            vscode.window.showInformationMessage(`Deleted: ${item.label}`);
+        }
+    }
+}
+
+// Провайдер для информационной панели
+class InfoDataProvider {
+    getTreeItem(element) {
+        return element;
+    }
+
+    getChildren() {
+        return [
+            new vscode.TreeItem('📊 Total items: 15', vscode.TreeItemCollapsibleState.None),
+            new vscode.TreeItem('📁 Folders: 5', vscode.TreeItemCollapsibleState.None),
+            new vscode.TreeItem('📄 Files: 10', vscode.TreeItemCollapsibleState.None),
+            new vscode.TreeItem('🕒 Last updated: Now', vscode.TreeItemCollapsibleState.None),
+            new vscode.TreeItem('ℹ️ This is a demo tree view', vscode.TreeItemCollapsibleState.None)
+        ];
+    }
+}
+
+function activate(context) {
+    console.log('TreeView Activity Bar extension activated');
+
+    // Создаем провайдеры данных
+    const treeDataProvider = new TreeDataProvider();
+    const infoDataProvider = new InfoDataProvider();
+
+    // Регистрируем TreeView в activity bar
+    const treeView = vscode.window.createTreeView('treeview-activitybar-demo.treeView', {
+        treeDataProvider: treeDataProvider,
+        showCollapseAll: true
+    });
+
+    const infoView = vscode.window.createTreeView('treeview-activitybar-demo.infoView', {
+        treeDataProvider: infoDataProvider
+    });
+
+    // Обработчики событий
+    treeView.onDidChangeSelection(event => {
+        if (event.selection.length > 0) {
+            const selectedItem = event.selection[0];
+            vscode.window.showInformationMessage(`Selected: ${selectedItem.label}`);
+        }
+    });
+
+    treeView.onDidExpandElement(event => {
+        console.log(`Expanded: ${event.element.label}`);
+    });
+
+    treeView.onDidCollapseElement(event => {
+        console.log(`Collapsed: ${event.element.label}`);
+    });
+
+    // Регистрируем команды
+    const commands = [
+        vscode.commands.registerCommand('treeview-activitybar-demo.refresh', () => {
+            treeDataProvider.refresh();
+        }),
+
+        vscode.commands.registerCommand('treeview-activitybar-demo.addItem', (node) => {
+            treeDataProvider.addItem(node);
+        }),
+
+        vscode.commands.registerCommand('treeview-activitybar-demo.editItem', (node) => {
+            treeDataProvider.editItem(node);
+        }),
+
+        vscode.commands.registerCommand('treeview-activitybar-demo.deleteItem', (node) => {
+            treeDataProvider.deleteItem(node);
+        }),
+
+        vscode.commands.registerCommand('treeview-activitybar-demo.openFile', (node) => {
+            vscode.window.showInformationMessage(`Opening: ${node.label}`);
+            // Здесь можно добавить реальное открытие файла
+            // vscode.workspace.openTextDocument(...);
+        }),
+
+        vscode.commands.registerCommand('treeview-activitybar-demo.showInfo', () => {
+            vscode.window.showInformationMessage('🌳 TreeView Demo Extension\n📌 Located in Activity Bar');
+        })
+    ];
+
+    // Добавляем все в контекст
+    commands.forEach(command => context.subscriptions.push(command));
+    context.subscriptions.push(treeView);
+    context.subscriptions.push(infoView);
+}
+
+function deactivate() {}
+
+module.exports = {
+    activate,
+    deactivate
+};
