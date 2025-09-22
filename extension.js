@@ -50,7 +50,7 @@ class TreeItem extends vscode.TreeItem {
         // Для элементов документации устанавливаем команду для показа
         if (type === 'document' || type === 'function') {
             this.command = {
-                command: 'treeview-activitybar-demo.showDocumentation',
+                command: 'treeview-activitybar-wsdth.showDocumentation',
                 title: 'Show Documentation',
                 arguments: [this]
             };
@@ -587,12 +587,12 @@ function activate(context) {
     const infoDataProvider = new InfoDataProvider(treeDataProvider);
 
     // Регистрируем TreeView в activity bar
-    const treeView = vscode.window.createTreeView('treeview-activitybar-demo.treeView', {
+    const treeView = vscode.window.createTreeView('treeview-activitybar-wsdth.treeView', {
         treeDataProvider: treeDataProvider,
         showCollapseAll: true
     });
 
-    const infoView = vscode.window.createTreeView('treeview-activitybar-demo.infoView', {
+    const infoView = vscode.window.createTreeView('treeview-activitybar-wsdth.infoView', {
         treeDataProvider: infoDataProvider
     });
 
@@ -640,7 +640,7 @@ function activate(context) {
 
         if (selected) {
             // Показываем документацию
-            vscode.commands.executeCommand('treeview-activitybar-demo.showDocumentation', {
+            vscode.commands.executeCommand('treeview-activitybar-wsdth.showDocumentation', {
                 documentationData: selected.docData,
                 label: selected.label,
                 id: selected.id
@@ -697,7 +697,7 @@ function activate(context) {
         });
 
         if (selected) {
-            vscode.commands.executeCommand('treeview-activitybar-demo.showDocumentation', {
+            vscode.commands.executeCommand('treeview-activitybar-wsdth.showDocumentation', {
                 documentationData: selected.docData,
                 label: selected.label,
                 id: selected.id
@@ -707,19 +707,19 @@ function activate(context) {
 
     // Регистрируем команды
     const commands = [
-        vscode.commands.registerCommand('treeview-activitybar-demo.refresh', () => {
+        vscode.commands.registerCommand('treeview-activitybar-wsdth.refresh', () => {
             treeDataProvider.loadFromSupabase().then(() => {
                 infoDataProvider.refresh();
             });
         }),
 
-        vscode.commands.registerCommand('treeview-activitybar-demo.loadFromSupabase', () => {
+        vscode.commands.registerCommand('treeview-activitybar-wsdth.loadFromSupabase', () => {
             treeDataProvider.loadFromSupabase().then(() => {
                 infoDataProvider.refresh();
             });
         }),
 
-        // vscode.commands.registerCommand('treeview-activitybar-demo.showDocumentation', async (item) => {
+        // vscode.commands.registerCommand('treeview-activitybar-wsdth.showDocumentation', async (item) => {
         //     if (!item.documentationData) {
         //         vscode.window.showWarningMessage('Нет данных для отображения документации');
         //         return;
@@ -745,7 +745,7 @@ function activate(context) {
         // }),
 
         // QuickPick команды
-        vscode.commands.registerCommand('treeview-activitybar-demo.showDocumentation', async (item) => {
+        vscode.commands.registerCommand('treeview-activitybar-wsdth.showDocumentation', async (item) => {
             if (!item.documentationData) {
                 vscode.window.showWarningMessage('Нет данных для отображения документации');
                 return;
@@ -783,7 +783,7 @@ function activate(context) {
         }),
 
         // Команда для явного закрытия всех панелей
-        vscode.commands.registerCommand('treeview-activitybar-demo.closeAllDocumentation', () => {
+        vscode.commands.registerCommand('treeview-activitybar-wsdth.closeAllDocumentation', () => {
             if (activeDocumentationPanel) {
                 activeDocumentationPanel.dispose();
                 activeDocumentationPanel = null;
@@ -791,8 +791,8 @@ function activate(context) {
             }
         }),
 
-        vscode.commands.registerCommand('treeview-activitybar-demo.searchDocumentation', showDocumentationQuickPick),
-        vscode.commands.registerCommand('treeview-activitybar-demo.filterDocumentation', showFilteredDocumentationQuickPick)
+        vscode.commands.registerCommand('treeview-activitybar-wsdth.searchDocumentation', showDocumentationQuickPick),
+        vscode.commands.registerCommand('treeview-activitybar-wsdth.filterDocumentation', showFilteredDocumentationQuickPick)
     ];
 
     // Добавляем все в контекст
@@ -804,7 +804,7 @@ function activate(context) {
     const quickPickStatusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
     quickPickStatusBar.text = '$(search) Search Docs';
     quickPickStatusBar.tooltip = 'Быстрый поиск документации';
-    quickPickStatusBar.command = 'treeview-activitybar-demo.searchDocumentation';
+    quickPickStatusBar.command = 'treeview-activitybar-wsdth.searchDocumentation';
     quickPickStatusBar.show();
     context.subscriptions.push(quickPickStatusBar);
 }

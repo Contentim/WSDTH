@@ -1,5 +1,5 @@
 {
-  "name": "treeview-activitybar-demo",
+  "name": "treeview-activitybar-wsdth",
   "displayName": "TreeView Activity Bar Demo",
   "description": "A TreeView extension that appears in the activity bar",
   "version": "0.0.1",
@@ -11,30 +11,30 @@
   ],
   "activationEvents": [
     "onStartupFinished",
-    "onView:treeview-activitybar-demo.treeView",
-    "onCommand:treeview-activitybar-demo.searchDocumentation",
-    "onCommand:treeview-activitybar-demo.filterDocumentation"
+    "onView:treeview-activitybar-wsdth.treeView",
+    "onCommand:treeview-activitybar-wsdth.searchDocumentation",
+    "onCommand:treeview-activitybar-wsdth.filterDocumentation"
   ],
   "main": "./extension.js",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "treeview-activitybar-demo",
-          "title": "Demo Workspace",
+          "id": "treeview-activitybar-wsdth",
+          "title": "Websoft DevTools Helper (WSDTH)",
           "icon": "$(list-tree)"
         }
       ]
     },
     "views": {
-      "treeview-activitybar-demo": [
+      "treeview-activitybar-wsdth": [
         {
-          "id": "treeview-activitybar-demo.treeView",
+          "id": "treeview-activitybar-wsdth.treeView",
           "name": "Websoft DevTools Helper",
           "icon": "$(list-tree)"
         },
         {
-          "id": "treeview-activitybar-demo.infoView",
+          "id": "treeview-activitybar-wsdth.infoView",
           "name": "Information",
           "icon": "$(info)"
         }
@@ -42,85 +42,85 @@
     },
     "commands": [
       {
-        "command": "treeview-activitybar-demo.refresh",
-        "title": "Refresh Tree",
+        "command": "treeview-activitybar-wsdth.refresh",
+        "title": "Refresh Documentation",
         "icon": "$(refresh)",
-        "category": "TreeView Demo"
+        "category": "WSDTH"
       },
       {
-        "command": "treeview-activitybar-demo.openFile",
+        "command": "treeview-activitybar-wsdth.openFile",
         "title": "Open File",
-        "category": "TreeView Demo"
+        "category": "WSDTH"
       },
       {
-        "command": "treeview-activitybar-demo.showInfo",
+        "command": "treeview-activitybar-wsdth.showInfo",
         "title": "Show Info",
-        "category": "TreeView Demo"
+        "category": "WSDTH"
       },
       {
-        "command": "treeview-activitybar-demo.showDocumentation",
+        "command": "treeview-activitybar-wsdth.showDocumentation",
         "title": "Show Documentation",
         "icon": "$(book)",
-        "category": "TreeView Demo"
+        "category": "WSDTH"
       },
       {
-        "command": "treeview-activitybar-demo.closeAllDocumentation",
+        "command": "treeview-activitybar-wsdth.closeAllDocumentation",
         "title": "Close All Documentation Panels",
-        "category": "TreeView Demo"
+        "category": "WSDTH"
       },
       {
-        "command": "treeview-activitybar-demo.searchDocumentation",
-        "title": "Search Todos",
+        "command": "treeview-activitybar-wsdth.searchDocumentation",
+        "title": "Search Documentation",
         "icon": "$(search)",
-        "category": "TreeView Demo"
+        "category": "WSDTH"
       },
       {
-        "command": "treeview-activitybar-demo.filterDocumentation",
+        "command": "treeview-activitybar-wsdth.filterDocumentation",
         "title": "Filter Todos",
         "icon": "$(filter)",
-        "category": "TreeView Demo"
+        "category": "WSDTH"
       }
     ],
     "menus": {
       "view/title": [
         {
-          "command": "treeview-activitybar-demo.refresh",
-          "when": "view == treeview-activitybar-demo.treeView",
+          "command": "treeview-activitybar-wsdth.refresh",
+          "when": "view == treeview-activitybar-wsdth.treeView",
           "group": "navigation"
         },
         {
-          "command": "treeview-activitybar-demo.searchDocumentation",
-          "when": "view == treeview-activitybar-demo.treeView",
+          "command": "treeview-activitybar-wsdth.searchDocumentation",
+          "when": "view == treeview-activitybar-wsdth.treeView",
           "group": "navigation"
         }
       ],
       "view/item/context": [
         {
-          "command": "treeview-activitybar-demo.openFile",
-          "when": "view == treeview-activitybar-demo.treeView && viewItem == file",
+          "command": "treeview-activitybar-wsdth.openFile",
+          "when": "view == treeview-activitybar-wsdth.treeView && viewItem == file",
           "group": "inline"
         },
         {
-          "command": "treeview-activitybar-demo.showDocumentation",
-          "when": "view == treeview-activitybar-demo.treeView && (viewItem == completed || viewItem == pending)",
+          "command": "treeview-activitybar-wsdth.showDocumentation",
+          "when": "view == treeview-activitybar-wsdth.treeView && (viewItem == completed || viewItem == pending)",
           "group": "inline"
         }
       ],
       "commandPalette": [
         {
-          "command": "treeview-activitybar-demo.searchDocumentation",
+          "command": "treeview-activitybar-wsdth.searchDocumentation",
           "when": "true"
         },
         {
-          "command": "treeview-activitybar-demo.filterDocumentation",
+          "command": "treeview-activitybar-wsdth.filterDocumentation",
           "when": "true"
         },
         {
-          "command": "treeview-activitybar-demo.showDocumentation",
+          "command": "treeview-activitybar-wsdth.showDocumentation",
           "when": "true"
         },
         {
-          "command": "treeview-activitybar-demo.closeAllDocumentation",
+          "command": "treeview-activitybar-wsdth.closeAllDocumentation",
           "when": "true"
         }
       ]
