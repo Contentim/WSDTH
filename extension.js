@@ -342,7 +342,7 @@ class TreeDataProvider {
     // Получение статистики для информационной панели
     getStats() {
         const totalDocuments = this.supabaseData.length;
-        const categoriesCount = this.categoriesMap.size;
+        const categoriesCount = this.categoriesData.size;
         const functionsCount = this.supabaseData.filter(doc => doc.type === 'function').length;
         const documentsCount = this.supabaseData.filter(doc => doc.type !== 'function').length;
         const uncategorizedCount = this.supabaseData.filter(doc => !doc.category).length;
@@ -399,10 +399,11 @@ class InfoDataProvider {
         return [
             new vscode.TreeItem('📊 Supabase Documentation Statistics', vscode.TreeItemCollapsibleState.None),
             new vscode.TreeItem('', vscode.TreeItemCollapsibleState.None),
-            new vscode.TreeItem(`📄 Всего документов: ${stats.totalDocuments}`, vscode.TreeItemCollapsibleState.None),
-            new vscode.TreeItem(`📁 Категорий: ${stats.categories}`, vscode.TreeItemCollapsibleState.None),
-            new vscode.TreeItem(`⚡ Функций: ${stats.functionsCount}`, vscode.TreeItemCollapsibleState.None),
-            new vscode.TreeItem(`📝 Документов: ${stats.documentsCount}`, vscode.TreeItemCollapsibleState.None),
+            // new vscode.TreeItem(`📄 Всего документов: ${stats.totalDocuments}`, vscode.TreeItemCollapsibleState.None),
+            new vscode.TreeItem(`📁 Категорий: ${stats.categoriesCount}`, vscode.TreeItemCollapsibleState.None),
+            // new vscode.TreeItem(`⚡ Функций: ${stats.functionsCount}`, vscode.TreeItemCollapsibleState.None),
+            new vscode.TreeItem(`⚡ Функций: ${stats.documentsCount}`, vscode.TreeItemCollapsibleState.None),
+            // new vscode.TreeItem(`📝 Документов: ${stats.documentsCount}`, vscode.TreeItemCollapsibleState.None),
             new vscode.TreeItem('', vscode.TreeItemCollapsibleState.None),
             new vscode.TreeItem('🔄 Данные загружаются автоматически', vscode.TreeItemCollapsibleState.None),
             new vscode.TreeItem('🌐 Источник: Supabase', vscode.TreeItemCollapsibleState.None),
