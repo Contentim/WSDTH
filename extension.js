@@ -91,8 +91,7 @@ class TreeDataProvider {
                         doc.id,
                         doc
                     )
-                ),
-                categoryTitle // ← УНИКАЛЬНЫЙ ID ДЛЯ КАТЕГОРИИ (важно!)
+                )
             )
         );
 
@@ -116,8 +115,7 @@ class TreeDataProvider {
                             doc.id,
                             doc
                         )
-                    ),
-                    'uncategorized' // ← уникальный ID для этой категории
+                    )
                 )
             );
         }
