@@ -1,4 +1,4 @@
-# websoft-ext-dev README
+# websoft-documentation-developer README
 
 This is the README for your extension "websoft-documentation-developer". After writing up a brief description, we recommend including the following sections.
 
