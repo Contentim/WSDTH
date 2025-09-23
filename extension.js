@@ -76,13 +76,30 @@ class TreeDataProvider {
     rebuildTreeView() {
         if (this.categoriesData.size === 0) return;
 
+        const sortedCategories = [...this.categoriesData.entries()].sort(([titleA], [titleB]) => {
+            const a = (titleA || '').toLowerCase();
+            const b = (titleB || '').toLowerCase();
+            if (a > b) return 1;
+            if (a < b) return -1;
+            return 0;
+        });
+
         // Создаем НОВЫЕ элементы категорий с текущим состоянием свернутости
-        const documentationChildren = Array.from(this.categoriesData.entries()).map(([categoryTitle, docs]) => 
-            new TreeItem(
+        const documentationChildren = sortedCategories.map(([categoryTitle, docs]) => {
+            // Сортируем документы по title по ВОЗРАСТАНИЮ (A → Z)
+            const sortedDocs = [...docs].sort((a, b) => {
+                const titleA = (a.title || '').toLowerCase();
+                const titleB = (b.title || '').toLowerCase();
+                if (titleA > titleB) return 1;
+                if (titleA < titleB) return -1;
+                return 0;
+            });
+
+            return new TreeItem(
                 categoryTitle,
-                this.currentCollapseState, // ← состояние берётся отсюда
+                this.currentCollapseState,
                 'folder',
-                docs.map(doc => 
+                sortedDocs.map(doc => 
                     new TreeItem(
                         doc.title || 'Без названия',
                         vscode.TreeItemCollapsibleState.None,
@@ -92,8 +109,8 @@ class TreeDataProvider {
                         doc
                     )
                 )
-            )
-        );
+            );
+        });
 
         // Добавляем категорию "Без категории"
         const uncategorizedDocs = Array.from(this.categoriesData.entries())
@@ -101,12 +118,21 @@ class TreeDataProvider {
             .concat(this.supabaseData.filter(doc => !doc.category && !this.categoriesData.has('Без категории')));
 
         if (uncategorizedDocs.length > 0) {
+            // Сортируем и "Без категории"
+            const sortedUncategorized = [...uncategorizedDocs].sort((a, b) => {
+                const titleA = (a.title || '').toLowerCase();
+                const titleB = (b.title || '').toLowerCase();
+                if (titleA > titleB) return 1;
+                if (titleA < titleB) return -1;
+                return 0;
+            });
+
             documentationChildren.push(
                 new TreeItem(
                     'Без категории',
                     this.currentCollapseState,
                     'folder',
-                    uncategorizedDocs.map(doc => 
+                    sortedUncategorized.map(doc => 
                         new TreeItem(
                             doc.title || 'Без названия',
                             vscode.TreeItemCollapsibleState.None,
@@ -120,10 +146,7 @@ class TreeDataProvider {
             );
         }
 
-        // Обновляем КОРНЕВОЙ массив — создаём НОВЫЙ массив
-        this.data = [...documentationChildren]; // ← spread для гарантии нового массива
-
-        // Явно говорим VS Code: перерисуй ВСЁ дерево
+        this.data = [...documentationChildren];
         this._onDidChangeTreeData.fire(undefined);
     }
 
